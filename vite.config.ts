@@ -13,6 +13,10 @@ export default defineConfig(() => {
     build: {
       target: 'esnext',
       chunkSizeWarningLimit: 2000,
+      minify: false,
+      commonjsOptions: {
+        transformMixedEsModules: true,
+      },
     },
     resolve: {
       alias: {
