@@ -50,8 +50,8 @@ createAppKit({
   metadata: {
     name: 'KinetiFi',
     description: 'Autonomous DeFi Optimisation on Base',
-    url: typeof window !== 'undefined' ? window.location.origin : 'https://kinetifi.vercel.app',
-    icons: ['https://kinetifi.vercel.app/favicon.ico'],
+    url: typeof window !== 'undefined' ? window.location.origin : 'https://KinetiFi.vercel.app',
+    icons: ['https://KinetiFi.vercel.app/favicon.ico'],
   },
   features: {
     analytics: false,  // disable cloud analytics

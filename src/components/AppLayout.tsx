@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAppContext } from '@/contexts/AppContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useWallet } from '@/contexts/WalletContext';
 import { useAccount, useSwitchChain } from 'wagmi';
@@ -18,7 +17,6 @@ import LandingPage from './wallet/LandingPage';
 import { Loader2, Wallet, ExternalLink, Zap } from 'lucide-react';
 
 const AppLayout: React.FC = () => {
-  const { sidebarOpen, toggleSidebar } = useAppContext();
   const isMobile = useIsMobile();
   const { isConnected, smartWalletBalance, disconnect, smartAccountAddress, isSmartAccountDeployed, isSmartAccountLoading } = useWallet();
   const [activeNav, setActiveNav] = useState<NavItem>('overview');
@@ -38,6 +36,9 @@ const AppLayout: React.FC = () => {
 
   // Display address: prefer the predicted address, fall back to nothing
   const displayAddress = smartAccountAddress ?? null;
+  const displayAddressShort = displayAddress
+    ? `${displayAddress.slice(0, 6)}…${displayAddress.slice(-4)}`
+    : 'Predicting…';
 
   const effectiveCollapsed = isMobile ? true : sidebarCollapsed;
 
@@ -195,6 +196,26 @@ const AppLayout: React.FC = () => {
                   {activeNav === 'yield' && 'Explore yield farming opportunities across DeFi protocols.'}
                   {activeNav === 'history' && 'Review all your on-chain transactions and activity.'}
                 </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3 mb-8">
+                <div className="rounded-3xl bg-white/[0.04] border border-white/[0.06] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-3">Smart Wallet Balance</p>
+                  <p className="text-3xl font-semibold text-white">{smartWalletBalance ?? '—'}</p>
+                  <p className="text-xs text-gray-400 mt-3">Available funds for AI-driven transactions.</p>
+                </div>
+
+                <div className="rounded-3xl bg-white/[0.04] border border-white/[0.06] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-3">Network</p>
+                  <p className="text-3xl font-semibold text-white">Base Mainnet</p>
+                  <p className="text-xs text-gray-400 mt-3">Connected network for all protocol interactions.</p>
+                </div>
+
+                <div className="rounded-3xl bg-white/[0.04] border border-white/[0.06] p-5 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+                  <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-3">Smart Wallet Address</p>
+                  <p className="text-sm font-medium text-[#00D4FF] font-mono break-all">{displayAddressShort}</p>
+                  <p className="text-xs text-gray-400 mt-3">{isSmartAccountDeployed ? 'Smart wallet is deployed' : 'Deployment pending'}</p>
+                </div>
               </div>
 
               {renderView()}

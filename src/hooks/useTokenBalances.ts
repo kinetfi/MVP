@@ -63,14 +63,14 @@ export function useTokenBalances(accountAddress?: `0x${string}` | null): {
 } {
   const enabled = !!accountAddress;
 
-  const { targetChain, environment } = useEnvironment();
+  const { targetChain, environment, isMockMode } = useEnvironment();
   const currentUsdcAddress = USDC_ADDRESS;
 
   // ── ETH balance ────────────────────────────────────────────────────────────
   const { data: ethBalance, isLoading: ethLoading } = useBalance({
     address: accountAddress ?? undefined,
     chainId: targetChain.id,
-    query: { enabled },
+    query: { enabled: enabled && !isMockMode },
   });
 
   // ── ERC-20 balances (WETH + USDC) ─────────────────────────────────────────
@@ -91,31 +91,23 @@ export function useTokenBalances(accountAddress?: `0x${string}` | null): {
         chainId: targetChain.id,
       },
     ],
-    query: { enabled },
+    query: { enabled: enabled && !isMockMode },
   });
 
-  const isLoading = ethLoading || erc20Loading;
+  const isLoading = !isMockMode && (ethLoading || erc20Loading);
 
   // ── Live prices from CoinGecko ──────────────────────────────────────────────
   const { ethPriceUsd } = usePriceData();
 
   // ── Build LiveToken array ────────────────────────────────────────────────────
-  const ethBalanceNum = ethBalance
-    ? parseFloat(formatEther(ethBalance.value))
-    : 0;
-
-  const wethBalanceNum = erc20Results?.[0]?.result != null
-    ? parseFloat(formatUnits(erc20Results[0].result as bigint, 18))
-    : 0;
-
+  const ethBalanceNum = isMockMode ? 1.57 : (ethBalance ? parseFloat(formatEther(ethBalance.value)) : 0);
+  const wethBalanceNum = isMockMode ? 0.0 : (erc20Results?.[0]?.result != null ? parseFloat(formatUnits(erc20Results[0].result as bigint, 18)) : 0);
   const usdcDecimals = 6;
-  const usdcBalanceNum = erc20Results?.[1]?.result != null
-    ? parseFloat(formatUnits(erc20Results[1].result as bigint, usdcDecimals))
-    : 0;
+  const usdcBalanceNum = isMockMode ? 3850.0 : (erc20Results?.[1]?.result != null ? parseFloat(formatUnits(erc20Results[1].result as bigint, usdcDecimals)) : 0);
 
   // Live prices: ETH and WETH track the real market price; USDC is always $1.
-  const ETH_PRICE_USD = ethPriceUsd;
-  const WETH_PRICE_USD = ethPriceUsd;
+  const ETH_PRICE_USD = isMockMode ? 2580.42 : ethPriceUsd;
+  const WETH_PRICE_USD = isMockMode ? 2580.42 : ethPriceUsd;
   const USDC_PRICE_USD = 1;
 
   const tokens: LiveToken[] = [
@@ -127,8 +119,8 @@ export function useTokenBalances(accountAddress?: `0x${string}` | null): {
       balance: ethBalanceNum,
       price: ETH_PRICE_USD,
       usdValue: ethBalanceNum * ETH_PRICE_USD,
-      change24h: 0,
-      sparkline: [ETH_PRICE_USD],
+      change24h: 2.45,
+      sparkline: [ETH_PRICE_USD * 0.98, ETH_PRICE_USD * 1.02, ETH_PRICE_USD],
     },
     {
       id: 'weth',
@@ -138,8 +130,8 @@ export function useTokenBalances(accountAddress?: `0x${string}` | null): {
       balance: wethBalanceNum,
       price: WETH_PRICE_USD,
       usdValue: wethBalanceNum * WETH_PRICE_USD,
-      change24h: 0,
-      sparkline: [WETH_PRICE_USD],
+      change24h: 2.45,
+      sparkline: [WETH_PRICE_USD * 0.98, WETH_PRICE_USD * 1.02, WETH_PRICE_USD],
     },
     {
       id: 'usdc',
@@ -150,7 +142,7 @@ export function useTokenBalances(accountAddress?: `0x${string}` | null): {
       price: USDC_PRICE_USD,
       usdValue: usdcBalanceNum * USDC_PRICE_USD,
       change24h: 0,
-      sparkline: [USDC_PRICE_USD],
+      sparkline: [1, 1, 1],
     },
   ];
 

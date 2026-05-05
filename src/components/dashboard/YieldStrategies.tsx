@@ -619,14 +619,14 @@ const AgentPanel: React.FC<AgentPanelProps> = ({ isAgentActive }) => {
   
   // 1. Local state for immediate UI feedback on refresh
   const [localActive, setLocalActive] = useState(() => {
-    return localStorage.getItem('kinetifi_agent_persistent_active') === 'true';
+    return localStorage.getItem('KinetiFi_agent_persistent_active') === 'true';
   });
 
   // 2. Sync local state with backend/on-chain truth when they arrive
   useEffect(() => {
     if (isSessionActive || isAgentActive) {
       setLocalActive(true);
-      localStorage.setItem('kinetifi_agent_persistent_active', 'true');
+      localStorage.setItem('KinetiFi_agent_persistent_active', 'true');
     }
   }, [isSessionActive, isAgentActive]);
 
@@ -641,7 +641,7 @@ const AgentPanel: React.FC<AgentPanelProps> = ({ isAgentActive }) => {
     
     // Set local state immediately for UX
     setLocalActive(true);
-    localStorage.setItem('kinetifi_agent_persistent_active', 'true');
+    localStorage.setItem('KinetiFi_agent_persistent_active', 'true');
 
     // 1. Notify Backend Agent to start its 24h window (Software side)
     try {
@@ -748,7 +748,7 @@ const YieldStrategies: React.FC = () => {
 
   // 1. Silent sync: Ensure backend knows we are active once per mount
   useEffect(() => {
-    const isPersistentActive = localStorage.getItem('kinetifi_agent_persistent_active') === 'true';
+    const isPersistentActive = localStorage.getItem('KinetiFi_agent_persistent_active') === 'true';
     if (isPersistentActive && !strategyData?.user_preferences?.is_active && !hasSyncedRef.current) {
       hasSyncedRef.current = true;
       let ws: WebSocket | null = null;
