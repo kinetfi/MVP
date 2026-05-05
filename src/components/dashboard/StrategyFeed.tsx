@@ -47,10 +47,56 @@ const INITIAL_HISTORY: FeedEvent[] = [
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const StrategyFeed: React.FC = () => {
-    const { targetChain } = useEnvironment();
+    const { targetChain, isMockMode } = useEnvironment();
     const [events, setEvents] = useState<FeedEvent[]>(INITIAL_HISTORY);
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [isListening, setIsListening] = useState(true);
+
+    // ── Mock Events Injection ──────────────────────────────────────────────────
+    useEffect(() => {
+        if (!isMockMode) return;
+
+        const mockEvents: FeedEvent[] = [
+            {
+                id: 'mock-evt-1',
+                type: 'scan',
+                title: 'Portfolio Audit Complete',
+                detail: 'Full scan of $10,000 across 3 protocols finished. 4 high-yield rotations identified.',
+                timestamp: new Date(Date.now() - 300000),
+                reasoning: "Current Uniswap LP concentration is sub-optimal. Reranging can capture 12.5% more volume."
+            },
+            {
+                id: 'mock-evt-2',
+                type: 'intent',
+                title: 'Aerodrome Migration Proposed',
+                detail: 'Move $4,000 AERO/USDC to High-Efficiency Gauge.',
+                timestamp: new Date(Date.now() - 600000),
+                target_project: 'Aerodrome',
+                amountInUsd: 4000,
+                isStrategicSwap: true,
+                reasoning: "The new gauge has a 4.2x emission multiplier compared to your current position."
+            },
+            {
+                id: 'mock-evt-3',
+                type: 'intent',
+                title: 'Beefy Yield Rotation Found',
+                detail: 'Swap idle USDC for BIFI-MAXI vault (+5.2% APY).',
+                timestamp: new Date(Date.now() - 900000),
+                target_project: 'Beefy',
+                amountInUsd: 2500,
+                isStrategicSwap: true,
+                reasoning: "BIFI-MAXI offers auto-compounding rewards which outperforms static USDC lending by 5%."
+            },
+            {
+                id: 'mock-evt-4',
+                type: 'system',
+                title: 'Showcase Baseline Established',
+                detail: 'Environment synchronized with MVP Mock Data.',
+                timestamp: new Date(Date.now() - 3600000),
+            }
+        ];
+        setEvents(mockEvents);
+    }, [isMockMode]);
 
     // ── Event Watcher ─────────────────────────────────────────────────────────────
 

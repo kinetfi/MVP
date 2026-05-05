@@ -21,7 +21,7 @@ const ProvisioningModal: React.FC = () => {
     // Check localStorage and conditionally open modal when entering SANDBOX
     useEffect(() => {
         if (environment === 'SANDBOX') {
-            const hasProvisioned = localStorage.getItem('kinetifi_sandbox_provisioned');
+            const hasProvisioned = localStorage.getItem('KinetiFi_sandbox_provisioned');
             if (!hasProvisioned) {
                 // Small delay so it doesn't pop instantly on page load
                 const timer = setTimeout(() => setIsOpen(true), 1500);
@@ -42,7 +42,7 @@ const ProvisioningModal: React.FC = () => {
     const handleClose = () => {
         setIsOpen(false);
         // Remember that the user closed it so we don't nag them again this session
-        localStorage.setItem('kinetifi_sandbox_provisioned', 'true');
+        localStorage.setItem('KinetiFi_sandbox_provisioned', 'true');
     };
 
     const handleProvision = async () => {

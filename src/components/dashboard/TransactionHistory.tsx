@@ -6,8 +6,7 @@ import {
   Loader2,
   AlertTriangle,
 } from 'lucide-react';
-import { KINETIFI_ACCOUNT_ADDRESS } from '@/constants/contracts';
-
+import { KinetiFi_ACCOUNT_ADDRESS } from '@/constants/contracts';
 import { useEnvironment } from '@/contexts/EnvironmentContext';
 
 // Etherscan V2 API (Unified Endpoint for all chains)
@@ -93,17 +92,11 @@ function formatAgo(date: Date): string {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-// Formatting helpers removed for clarity (using inline table styles)
-
-// ── Row ───────────────────────────────────────────────────────────────────────
-
-// TxRow component removed in favor of direct table mapping for performance and layout control
-
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 const TransactionHistory: React.FC = () => {
   const { eoaAddress, smartAccountAddress } = useWallet();
-  const { targetChain } = useEnvironment();
+  const { targetChain, isMockMode } = useEnvironment();
   const [filter, setFilter] = useState<TxFilter>('all');
   const [txs, setTxs] = useState<DisplayTx[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,11 +106,92 @@ const TransactionHistory: React.FC = () => {
   const explorerBase = targetChain.id === 8453 ? EXPLORER_MAINNET : EXPLORER_SEPOLIA;
 
   useEffect(() => {
-    if (!smartAccountAddress && !eoaAddress) return;
+    if (!smartAccountAddress && !eoaAddress && !isMockMode) return;
 
     let cancelled = false;
     setLoading(true);
     setError(null);
+
+    if (isMockMode) {
+      setTimeout(() => {
+        if (cancelled) return;
+        const mockTxs: DisplayTx[] = [
+          {
+            id: 'mock-1',
+            type: 'contract',
+            hash: '0x7d1a2e3f4g5h6i7j8k9l0m1n2o3p4q5r6s7t8u9v',
+            action: 'Deposit',
+            block: '14285700',
+            from: eoaAddress || '0xWallet',
+            to: 'Aerodrome: Gauge',
+            amount: '5620.5 AERO',
+            fee: '0.000412',
+            status: 'confirmed',
+            timestamp: Math.floor(Date.now() / 1000) - 3600,
+            isOut: true,
+          },
+          {
+            id: 'mock-2',
+            type: 'contract',
+            hash: '0x9c3e4d5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v',
+            action: 'Increase Liquidity',
+            block: '14285650',
+            from: eoaAddress || '0xWallet',
+            to: 'Uniswap V3: NFT Manager',
+            amount: '1.2 WETH',
+            fee: '0.000854',
+            status: 'confirmed',
+            timestamp: Math.floor(Date.now() / 1000) - 7200,
+            isOut: true,
+          },
+          {
+            id: 'mock-3',
+            type: 'contract',
+            hash: '0x4b2d3c4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u',
+            action: 'Deposit',
+            block: '14285600',
+            from: eoaAddress || '0xWallet',
+            to: 'Beefy: BIFI Vault',
+            amount: '2500.0 USDC',
+            fee: '0.000321',
+            status: 'confirmed',
+            timestamp: Math.floor(Date.now() / 1000) - 10800,
+            isOut: true,
+          },
+          {
+            id: 'mock-4',
+            type: 'receive',
+            hash: '0x1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t',
+            action: 'Transfer',
+            block: '14285500',
+            from: 'CEX: Coinbase',
+            to: eoaAddress || '0xWallet',
+            amount: '5.0 ETH',
+            fee: '0.000000',
+            status: 'confirmed',
+            timestamp: Math.floor(Date.now() / 1000) - 86400,
+            isOut: false,
+          },
+          {
+            id: 'mock-5',
+            type: 'contract',
+            hash: '0xdef0123456789abcdef0123456789abcdef01234',
+            action: 'Approve',
+            block: '14285400',
+            from: eoaAddress || '0xWallet',
+            to: 'Uniswap V3: Router',
+            amount: '0 ETH',
+            fee: '0.000124',
+            status: 'confirmed',
+            timestamp: Math.floor(Date.now() / 1000) - 90000,
+            isOut: true,
+          }
+        ];
+        setTxs(mockTxs);
+        setLoading(false);
+      }, 800);
+      return;
+    }
 
     const apiKey = import.meta.env.VITE_BASESCAN_API_KEY;
     
@@ -161,7 +235,7 @@ const TransactionHistory: React.FC = () => {
       });
 
     return () => { cancelled = true; };
-  }, [smartAccountAddress, eoaAddress, targetChain.id, apiBase]);
+  }, [smartAccountAddress, eoaAddress, targetChain.id, apiBase, isMockMode]);
 
   const filtered = useMemo(
     () => (filter === 'all' ? txs : txs.filter((t) => t.type === filter)),

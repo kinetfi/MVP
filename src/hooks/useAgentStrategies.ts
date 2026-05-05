@@ -69,7 +69,11 @@ export interface AgentStrategy {
   user_preferences: UserPreferences;
 }
 
+import { useEnvironment } from '@/contexts/EnvironmentContext';
+import { mockAgentStrategy } from '@/constants/mockData';
+
 export function useAgentStrategies() {
+  const { isMockMode } = useEnvironment();
   const {
     data,
     isLoading,
@@ -79,6 +83,7 @@ export function useAgentStrategies() {
   } = useQuery<AgentStrategy, Error>({
     queryKey: ['agentStrategies'],
     refetchInterval: 60000, // Poll every 60s to prevent 429 errors
+    enabled: !isMockMode,
     queryFn: async () => {
       const res = await fetch(`${AGENT_BASE_URL}/strategies`);
       if (!res.ok) {
@@ -89,9 +94,9 @@ export function useAgentStrategies() {
   });
 
   return {
-    data: data ?? null,
-    isLoading,
-    isError,
+    data: isMockMode ? (mockAgentStrategy as any) : (data ?? null),
+    isLoading: !isMockMode && isLoading,
+    isError: !isMockMode && isError,
     error: error as Error | null,
     refetch,
   };

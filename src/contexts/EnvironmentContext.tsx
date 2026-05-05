@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { base, baseSepolia } from 'wagmi/chains';
 import { Chain } from 'viem';
 
@@ -8,6 +8,8 @@ interface EnvironmentContextType {
     environment: Environment;
     toggleEnvironment: () => void;
     targetChain: Chain;
+    isMockMode: boolean;
+    setMockMode: (val: boolean) => void;
 }
 
 const EnvironmentContext = createContext<EnvironmentContextType | undefined>(undefined);
@@ -16,10 +18,25 @@ export const EnvironmentProvider: React.FC<{ children: ReactNode }> = ({ childre
     const environment: Environment = 'PRODUCTION';
     const toggleEnvironment = () => {};
 
+    const [isMockMode, setIsMockMode] = useState<boolean>(() => {
+        const saved = localStorage.getItem('kineti_mock_mode');
+        return saved ? saved === 'true' : true; // Default to true for showcase
+    });
+
+    useEffect(() => {
+        localStorage.setItem('kineti_mock_mode', isMockMode.toString());
+    }, [isMockMode]);
+
     const targetChain = environment === 'PRODUCTION' ? base : baseSepolia;
 
     return (
-        <EnvironmentContext.Provider value={{ environment, toggleEnvironment, targetChain }}>
+        <EnvironmentContext.Provider value={{ 
+            environment, 
+            toggleEnvironment, 
+            targetChain, 
+            isMockMode, 
+            setMockMode: setIsMockMode 
+        }}>
             <div
                 className="min-h-screen text-white transition-colors duration-500"
                 style={{

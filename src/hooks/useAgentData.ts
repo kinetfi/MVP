@@ -55,6 +55,9 @@ export interface AgentResponse {
 
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
+import { useEnvironment } from '@/contexts/EnvironmentContext';
+import { mockAgentStrategy } from '@/constants/mockData';
+
 export function useAgentData(addressOverride?: string | null): {
   data: AgentResponse | null;
   isLoading: boolean;
@@ -63,6 +66,7 @@ export function useAgentData(addressOverride?: string | null): {
   refetch: () => void;
 } {
   const { eoaAddress } = useWallet();
+  const { isMockMode } = useEnvironment();
   const address = addressOverride ?? eoaAddress;
 
   const {
@@ -73,7 +77,7 @@ export function useAgentData(addressOverride?: string | null): {
     refetch,
   } = useQuery<AgentResponse, Error>({
     queryKey: ['agentOptimize', address],
-    enabled: !!address,
+    enabled: !!address && !isMockMode,
     // Only fetch once per session — agent scan takes time
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1,
@@ -94,10 +98,17 @@ export function useAgentData(addressOverride?: string | null): {
     },
   });
 
+  const mockResponse: AgentResponse = {
+    wallet_address: address || '0x000...000',
+    positions_found: 3,
+    opportunities: mockAgentStrategy.opportunities as any,
+    registration_status: 'registered',
+  };
+
   return {
-    data: data ?? null,
-    isLoading,
-    isError,
+    data: isMockMode ? mockResponse : (data ?? null),
+    isLoading: !isMockMode && isLoading,
+    isError: !isMockMode && isError,
     error: error as Error | null,
     refetch,
   };

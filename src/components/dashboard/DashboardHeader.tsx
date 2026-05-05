@@ -10,6 +10,7 @@ import {
   LogOut,
   Check,
   User,
+  Sparkles,
 } from 'lucide-react';
 import { useBalance } from 'wagmi';
 import { formatEther } from 'viem';
@@ -28,8 +29,7 @@ const EXPLORER_URLS: Record<'PRODUCTION' | 'SANDBOX', string> = {
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ sidebarCollapsed }) => {
   const { session, shortAddress, disconnect, eoaAddress } = useWallet();
-
-  const { environment, targetChain } = useEnvironment();
+  const { environment, targetChain, isMockMode, setMockMode } = useEnvironment();
   const explorerUrl = EXPLORER_URLS[environment];
 
   // Live EOA balance (the connected MetaMask wallet)
@@ -97,8 +97,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ sidebarCollapsed }) =
 
   return (
     <header
-      className={`fixed top-0 right-0 h-16 z-30 flex items-center justify-between px-6 transition-all duration-300 ${sidebarCollapsed ? 'left-[72px]' : 'left-[240px]'
-        }`}
+      className={`fixed top-0 right-0 h-16 z-30 flex items-center justify-between px-6 transition-all duration-300 ${sidebarCollapsed ? 'left-[72px]' : 'left-[240px]'}`}
       style={{
         background: 'rgba(10, 14, 39, 0.8)',
         backdropFilter: 'blur(16px)',
@@ -137,6 +136,20 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ sidebarCollapsed }) =
 
       {/* Right side */}
       <div className="flex items-center gap-3 ml-4">
+        {/* Showcase Mode Toggle */}
+        <button
+          onClick={() => setMockMode(!isMockMode)}
+          className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all duration-300 ${isMockMode
+            ? 'bg-[#FFB800]/10 border-[#FFB800]/40 text-[#FFB800] shadow-[0_0_12px_rgba(255,184,0,0.15)] animate-pulse'
+            : 'bg-white/[0.04] border-white/[0.06] text-gray-500 hover:bg-white/[0.08] hover:text-gray-300'
+            }`}
+        >
+          <Sparkles size={14} className={isMockMode ? 'text-[#FFB800]' : ''} />
+          <span className="text-[11px] font-bold uppercase tracking-wider">
+            {isMockMode ? 'Showcase Mode Active' : 'Enable Showcase Mode'}
+          </span>
+        </button>
+
         {/* Network badge */}
         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
           <div className="w-2 h-2 rounded-full animate-pulse bg-[#0052FF]" />
@@ -146,7 +159,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ sidebarCollapsed }) =
         {/* Gas indicator */}
         <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/[0.04]">
           <Wifi size={12} className="text-[#00FFA3]" />
-          <span className="text-xs font-mono text-gray-400">Live</span>
+          <span className="text-xs font-mono text-gray-400">{isMockMode ? 'Simulated' : 'Live'}</span>
         </div>
 
         {/* Notifications */}
@@ -195,10 +208,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ sidebarCollapsed }) =
                         className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
                         style={{ background: notifTypeColors[n.type] }}
                       />
-                        <div className="flex-1 min-w-0">
-                          <span className="text-sm font-medium text-white">{n.title}</span>
-                          <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">{n.message}</p>
-                        </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm font-medium text-white">{n.title}</span>
+                        <p className="text-xs text-gray-400 mt-0.5 leading-relaxed">{n.message}</p>
+                      </div>
                     </div>
                   </button>
                 ))}
