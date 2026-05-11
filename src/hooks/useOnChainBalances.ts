@@ -19,9 +19,12 @@ export interface WalletAsset {
   color: string;
 }
 
+import { useEnvironment } from '@/contexts/EnvironmentContext';
+
 export function useOnChainBalances() {
   const { address } = useAccount();
   const { smartAccountAddress } = useWallet();
+  const { isMockMode } = useEnvironment();
 
   // HIGH-EFFICIENCY ONE-SHOT PASS
   const tokens = useMemo(() => [
@@ -39,13 +42,22 @@ export function useOnChainBalances() {
       // Price for ETH (Chainlink)
       { address: '0x71041dddad3595f8ce35ac4573e1869751c295de', abi: [{ inputs: [], name: 'latestRoundData', outputs: [{ name: 'roundId', type: 'uint80' }, { name: 'answer', type: 'int256' }, { name: 'startedAt', type: 'uint256' }, { name: 'updatedAt', type: 'uint256' }, { name: 'answeredInRound', type: 'uint80' }], stateMutability: 'view', type: 'function' }] as const, functionName: 'latestRoundData', chainId: 8453 },
     ],
-    query: { staleTime: 60000, refetchOnWindowFocus: false }
+    query: { staleTime: 60000, refetchOnWindowFocus: false, enabled: !isMockMode }
   });
 
-  const eoaEth = useBalance({ address: address as Address, chainId: 8453, query: { staleTime: 60000, refetchOnWindowFocus: false } });
-  const saEth = useBalance({ address: smartAccountAddress as Address, chainId: 8453, query: { staleTime: 60000, refetchOnWindowFocus: false } });
+  const eoaEth = useBalance({ address: address as Address, chainId: 8453, query: { staleTime: 60000, refetchOnWindowFocus: false, enabled: !isMockMode } });
+  const saEth = useBalance({ address: smartAccountAddress as Address, chainId: 8453, query: { staleTime: 60000, refetchOnWindowFocus: false, enabled: !isMockMode } });
 
   const processed = useMemo(() => {
+    if (isMockMode) {
+      const mockAssets: WalletAsset[] = [
+        { id: 'native-eth', symbol: 'ETH', name: 'Ethereum', balance: 1.57, price: 2580.42, usdValue: 4051.26, color: '#627EEA' },
+        { id: USDC_ADDRESS.toLowerCase(), symbol: 'USDC', name: 'USD Coin', balance: 3850, price: 1, usdValue: 3850, color: '#2775CA' },
+        { id: 'aero-mock', symbol: 'AERO', name: 'Aerodrome', balance: 15420.5, price: 0.85, usdValue: 13107.42, color: '#00D4FF' },
+      ];
+      return { assets: mockAssets, ethPrice: 2580.42 };
+    }
+
     const list: WalletAsset[] = [];
     const clRes = universalFetch.data?.[tokens.length * 2]?.result as any;
     const ethPrice = clRes ? Number(clRes[1]) / 1e8 : 3500;
@@ -72,7 +84,7 @@ export function useOnChainBalances() {
 
     console.log('[One-Shot Balance] Discovery Complete:', { eth: totalEth, usdc: list.find(l => l.symbol === 'USDC')?.balance || 0 });
     return { assets: list.sort((a, b) => b.usdValue - a.usdValue), ethPrice };
-  }, [universalFetch.data, eoaEth.data, saEth.data, tokens]);
+  }, [universalFetch.data, eoaEth.data, saEth.data, tokens, isMockMode]);
 
-  return { assets: processed.assets, ethPrice: processed.ethPrice, isLoading: universalFetch.isLoading || eoaEth.isLoading || saEth.isLoading };
+  return { assets: processed.assets, ethPrice: processed.ethPrice, isLoading: !isMockMode && (universalFetch.isLoading || eoaEth.isLoading || saEth.isLoading) };
 }

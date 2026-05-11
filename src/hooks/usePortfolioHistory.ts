@@ -79,6 +79,9 @@ async function fetchEthHistory(days: string): Promise<[number, number][]> {
   return json.prices;
 }
 
+import { useEnvironment } from '@/contexts/EnvironmentContext';
+import { mockPortfolioHistory } from '@/constants/mockData';
+
 export function usePortfolioHistory(
   ethBalance: number,
   range: TimeRange,
@@ -89,6 +92,7 @@ export function usePortfolioHistory(
   changePercent: number | null;
   changeDollar: number | null;
 } {
+  const { isMockMode } = useEnvironment();
   const days = DAYS[range];
 
   const { data: rawPrices, isLoading, isError } = useQuery<[number, number][]>({
@@ -97,7 +101,23 @@ export function usePortfolioHistory(
     gcTime: 15 * 60 * 1000,
     retry: 2,
     queryFn: () => fetchEthHistory(days),
+    enabled: !isMockMode,
   });
+
+  if (isMockMode) {
+    const first = mockPortfolioHistory[0]?.value ?? 0;
+    const last  = mockPortfolioHistory[mockPortfolioHistory.length - 1]?.value ?? 0;
+    const changeDollar = last - first;
+    const changePercent = first > 0 ? (changeDollar / first) * 100 : null;
+
+    return { 
+      data: mockPortfolioHistory, 
+      isLoading: false, 
+      isError: false, 
+      changePercent, 
+      changeDollar 
+    };
+  }
 
   if (!rawPrices || rawPrices.length === 0) {
     return { data: [], isLoading, isError, changePercent: null, changeDollar: null };

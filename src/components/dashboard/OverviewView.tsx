@@ -176,35 +176,43 @@ const NetworkDistribution: React.FC<{
 
 const OverviewView: React.FC<OverviewViewProps> = ({ onNavigate }) => {
   const { eoaAddress, smartAccountAddress } = useWallet();
-  const { targetChain } = useEnvironment();
+  const { targetChain, isMockMode } = useEnvironment();
   const { data: agentData, isLoading: agentLoading, isError: agentError } = useAgentData();
   
   // Native Base Mainnet Aggregation Engine bypasses discovery agent states
   const { data: saBalance, isLoading: saLoading } = useBalance({
     address: smartAccountAddress ?? undefined,
     chainId: targetChain.id,
-    query: { enabled: !!smartAccountAddress },
+    query: { enabled: !!smartAccountAddress && !isMockMode },
   });
 
   const { data: eoaBalance, isLoading: eoaLoading } = useBalance({
     address: eoaAddress ?? undefined,
     chainId: targetChain.id,
-    query: { enabled: !!eoaAddress },
+    query: { enabled: !!eoaAddress && !isMockMode },
   });
 
-  const { ethPriceUsd } = usePriceData();
+  const { ethPriceUsd: realPrice } = usePriceData();
+  const ethPriceUsd = isMockMode ? 2580.42 : realPrice;
   const uniswapData = useUniswapV3Position(4859024);
 
-  const saEth = saBalance ? parseFloat(formatEther(saBalance.value)) : 0;
-  const eoaEth = eoaBalance ? parseFloat(formatEther(eoaBalance.value)) : 0;
+  const saEth = isMockMode ? 1.57 : (saBalance ? parseFloat(formatEther(saBalance.value)) : 0);
+  const eoaEth = isMockMode ? 0 : (eoaBalance ? parseFloat(formatEther(eoaBalance.value)) : 0);
   const totalEth = saEth + eoaEth;
-  const portfolioUsd = (totalEth * ethPriceUsd) + (uniswapData.totalValue || 0);
+  
+  // Showcase Mode: $10,000 in DeFi + ETH balance
+  const mockDeFiVal = 10000;
+  const portfolioUsd = (totalEth * ethPriceUsd) + (isMockMode ? mockDeFiVal : (uniswapData.totalValue || 0));
 
-  const nativeByChain = {
+  const nativeByChain = isMockMode ? {
+    'Base': portfolioUsd * 0.85,
+    'Ethereum': portfolioUsd * 0.10,
+    'Arbitrum': portfolioUsd * 0.05
+  } : {
     'Base': portfolioUsd
   };
 
-  const isChainLoading = saLoading || eoaLoading || uniswapData.isLoading;
+  const isChainLoading = !isMockMode && (saLoading || eoaLoading || uniswapData.isLoading);
 
   const opportunities = agentData?.opportunities?.slice(0, 4) ?? [];
   const colors = ['#00D4FF', '#00FFA3', '#8B5CF6', '#FFB800'];

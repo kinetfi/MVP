@@ -92,16 +92,21 @@ function getAmounts(sqrtCurrent: bigint, tickLower: number, tickUpper: number, l
   return [0n, a1];
 }
 
+import { useEnvironment } from '@/contexts/EnvironmentContext';
+import { mockDeFiPositions } from '@/constants/mockData';
+
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useDeFiPositions() {
   const { activeAddress } = useWallet();
+  const { isMockMode } = useEnvironment();
   const publicClient = usePublicClient();
   const [discoveredIds, setDiscoveredIds] = useState<string[]>([]);
   const [isDiscovering, setIsDiscovering] = useState(false);
 
   // 1. Discovery Effect: Find staked Token IDs whenever wallet changes
   useEffect(() => {
+    if (isMockMode) return; // Skip real discovery in mock mode
     if (!activeAddress || !publicClient) return;
 
     async function runDiscovery() {
@@ -133,10 +138,11 @@ export function useDeFiPositions() {
     }
 
     runDiscovery();
-  }, [activeAddress, publicClient]);
+  }, [activeAddress, publicClient, isMockMode]);
 
   // 2. Multicall Resolution: Fetch metadata for all discovered IDs + Pool Price + ETH Price
   const queries = useMemo(() => {
+    if (isMockMode) return [];
     if (discoveredIds.length === 0) {
       // Still need ETH price and slot0 even if no positions discovered
       return [
@@ -158,7 +164,7 @@ export function useDeFiPositions() {
       { address: REI_WETH_POOL_ADDRESS, abi: v3PoolAbi, functionName: 'slot0', chainId: 8453 },
       { address: CHAINLINK_ETH_USD, abi: chainlinkAbi, functionName: 'latestRoundData', chainId: 8453 },
     ];
-  }, [discoveredIds]);
+  }, [discoveredIds, isMockMode]);
 
   const { data, isLoading: isReading, refetch } = useReadContracts({
     contracts: queries as any,
@@ -166,14 +172,14 @@ export function useDeFiPositions() {
       staleTime: 0, 
       gcTime: 0, 
       refetchOnWindowFocus: false,
-      enabled: !!activeAddress,
+      enabled: !!activeAddress && !isMockMode,
     },
     allowFailure: true,
   });
 
   // 3. Transformation: Map raw data to UI-ready positions
-  const positions = useMemo<DiscoveredPosition[]>(() => {
-    if (!data || discoveredIds.length === 0) return [];
+  const realPositions = useMemo<DiscoveredPosition[]>(() => {
+    if (isMockMode || !data || discoveredIds.length === 0) return [];
 
     const result: DiscoveredPosition[] = [];
     const numPos = discoveredIds.length;
@@ -247,12 +253,13 @@ export function useDeFiPositions() {
     });
 
     return result;
-  }, [data, discoveredIds]);
+  }, [data, discoveredIds, isMockMode]);
 
   return { 
-    positions, 
-    isLoading: isDiscovering || isReading, 
+    positions: isMockMode ? (mockDeFiPositions as any) : realPositions, 
+    isLoading: !isMockMode && (isDiscovering || isReading), 
     refetch: () => {
+      if (isMockMode) return;
       // Refetch logic: clear discovery state to trigger re-scan
       setDiscoveredIds([]); 
       refetch();

@@ -52,13 +52,14 @@ const NetWorthCard: React.FC = () => {
     query: { enabled: !!eoaAddress },
   });
 
+  const { isMockMode } = useEnvironment();
   const saEth = saBalance ? parseFloat(formatEther(saBalance.value)) : 0;
   const eoaEth = eoaBalance ? parseFloat(formatEther(eoaBalance.value)) : 0;
-  const totalEth = saEth + eoaEth;
-  const totalDeFiUsd = uniswapData.totalValue || 0;
+  const totalEth = isMockMode ? 1.57 : (saEth + eoaEth);
+  const totalDeFiUsd = isMockMode ? 10000 : (uniswapData.totalValue || 0);
   const totalNetWorthUsd = (totalEth * ethPriceUsd) + totalDeFiUsd;
 
-  const isLoading = saLoading || eoaLoading || uniswapData.isLoading;
+  const isLoading = !isMockMode && (saLoading || eoaLoading || uniswapData.isLoading);
 
   return (
     <div
@@ -85,7 +86,7 @@ const NetWorthCard: React.FC = () => {
         </div>
         <div className="flex items-center gap-1">
           <ArrowUpRight size={14} className="text-[#00FFA3]" />
-          <span className="text-xs font-medium text-[#00FFA3]">Live</span>
+          <span className="text-xs font-medium text-[#00FFA3]">{isMockMode ? 'MOCKED' : 'Live'}</span>
         </div>
       </div>
       <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">
@@ -108,44 +109,40 @@ const NetWorthCard: React.FC = () => {
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Card 2 — 24h Change (real ETH price from CoinGecko)
-// ─────────────────────────────────────────────────────────────────────────────
+// ... existing Change24hCard code ...
 
 const Change24hCard: React.FC = () => {
   const { eoaAddress, smartAccountAddress } = useWallet();
-  const { ethPriceUsd, eth24hChangePct, isLoading: priceLoading } = usePriceData();
-  const { targetChain } = useEnvironment();
+  const { ethPriceUsd, eth24hChangePct: realChange, isLoading: priceLoading } = usePriceData();
+  const { targetChain, isMockMode } = useEnvironment();
   const uniswapData = useUniswapV3Position(4859024);
+
+  const eth24hChangePct = isMockMode ? 2.45 : realChange;
 
   const { data: saBalance } = useBalance({
     address: smartAccountAddress ?? undefined,
     chainId: targetChain.id,
-    query: { enabled: !!smartAccountAddress },
+    query: { enabled: !!smartAccountAddress && !isMockMode },
   });
 
   const { data: eoaBalance } = useBalance({
     address: eoaAddress ?? undefined,
     chainId: targetChain.id,
-    query: { enabled: !!eoaAddress },
+    query: { enabled: !!eoaAddress && !isMockMode },
   });
 
   const saEth = saBalance ? parseFloat(formatEther(saBalance.value)) : 0;
   const eoaEth = eoaBalance ? parseFloat(formatEther(eoaBalance.value)) : 0;
-  const totalEth = saEth + eoaEth;
-  const totalDeFiUsd = uniswapData.totalValue || 0;
-  const portfolioUsd = (totalEth * ethPriceUsd) + totalDeFiUsd;
+  const totalEth = isMockMode ? 1.57 : (saEth + eoaEth);
   
-  // Approximation: Change only applies to the ETH portion of the portfolio
-  // (In a real app we'd track each token's change)
   const dollarChange = (totalEth * ethPriceUsd) * (eth24hChangePct / 100);
   const isPositive = eth24hChangePct >= 0;
 
-  const pctDisplay = priceLoading
+  const pctDisplay = (priceLoading && !isMockMode)
     ? '…'
     : `${isPositive ? '+' : ''}${eth24hChangePct.toFixed(2)}%`;
 
-  const dollarDisplay = priceLoading
+  const dollarDisplay = (priceLoading && !isMockMode)
     ? undefined
     : `${isPositive ? '+' : ''}$${Math.abs(dollarChange).toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
@@ -188,8 +185,8 @@ const Change24hCard: React.FC = () => {
           </div>
         )}
       </div>
-      <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">24h Change</p>
-      {priceLoading ? (
+      <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Portfolio 24h</p>
+      {priceLoading && !isMockMode ? (
         <div className="flex items-center gap-2 h-8">
           <Loader2 size={16} className="text-[#00FFA3] animate-spin" />
           <span className="text-sm text-gray-500">Fetching…</span>
@@ -200,33 +197,32 @@ const Change24hCard: React.FC = () => {
         </p>
       )}
       <p className="text-xs text-gray-500 mt-1">
-        ETH · {ethPriceUsd > 0 ? `$${ethPriceUsd.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : '—'}
+        ETH · $2,580.42
       </p>
     </div>
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Cards 3 & 4 — DeFi Positions + Best APY
-// ─────────────────────────────────────────────────────────────────────────────
+// ... existing DefiMetricCards code ...
 
 const DefiMetricCards: React.FC = () => {
   const { data: agentData, isLoading: agentLoading } = useAgentData();
+  const { isMockMode } = useEnvironment();
 
   // Active positions: securely decoupled from off-chain APIs mapped natively to UI state
-  const positionsCount = 1;
-  const positionsLoading = false;
+  const positionsCount = isMockMode ? 3 : 1;
+  const positionsLoading = !isMockMode && false;
 
   // Best APY from agent opportunities
   const opportunities = agentData?.opportunities ?? [];
-  const bestApy = opportunities.length > 0
-    ? Math.max(...opportunities.map((o) => o.target_apy)).toFixed(1) + '%'
-    : null;
+  const bestApy = isMockMode 
+    ? "60.4%" 
+    : opportunities.length > 0
+      ? Math.max(...opportunities.map((o) => o.target_apy)).toFixed(1) + '%'
+      : null;
 
   // Position subtitle
-  let positionSubtitle = '';
-  if (positionsCount > 0) positionSubtitle = 'native smart wallet layer';
-  else positionSubtitle = 'Start agent to scan';
+  let positionSubtitle = isMockMode ? 'Across 3 protocols' : 'native smart wallet layer';
 
   return (
     <>
@@ -258,7 +254,7 @@ const DefiMetricCards: React.FC = () => {
           <div className="flex items-center gap-1">
             <ArrowUpRight size={14} className="text-[#00FFA3]" />
             <span className="text-xs font-medium text-[#00FFA3]">
-              1 chain
+              {isMockMode ? '3 vaults' : '1 chain'}
             </span>
           </div>
         </div>
@@ -272,9 +268,9 @@ const DefiMetricCards: React.FC = () => {
 
       <BestApyCard
         value={bestApy}
-        loading={agentLoading}
-        opportunitiesCount={opportunities.length}
-        subtitle={agentLoading ? 'Fetching…' : bestApy ? 'from agent scan' : 'Enable agent to scan'}
+        loading={!isMockMode && agentLoading}
+        opportunitiesCount={isMockMode ? 4 : opportunities.length}
+        subtitle={isMockMode ? 'Aggregated from 3 chains' : (agentLoading ? 'Fetching…' : bestApy ? 'from agent scan' : 'Enable agent to scan')}
       />
     </>
   );

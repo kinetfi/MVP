@@ -1,6 +1,6 @@
 /**
  * KinetiFi — Deployed Contract Addresses & ABIs (Base Mainnet)
- * All contracts deployed via Kinetifi-foundry / DeployBase.s.sol
+ * All contracts deployed via KinetiFi-foundry / DeployBase.s.sol
  */
 
 // ── Configuration ─────────────────────────────────────────────────────────────
@@ -8,13 +8,13 @@ export const AGENT_ID = 0n;
 
 // ── KinetiFi Suite (Base Mainnet) ──────────────────────────────────────────────────────────────────
 
-export const KINETIFI_AGENT_NFT_ADDRESS =
+export const KinetiFi_AGENT_NFT_ADDRESS =
   '0x5eCeC712ab5a1DFfaeab0086f04124574D5913Ec' as const;
 
-export const KINETIFI_ACCOUNT_ADDRESS =
+export const KinetiFi_ACCOUNT_ADDRESS =
   '0x8e31f83987E7034949C865DFac3089B5634E604a' as const;
 
-export const KINETIFI_ACCOUNT_FACTORY_ADDRESS =
+export const KinetiFi_ACCOUNT_FACTORY_ADDRESS =
   '0x52bdc8eb286b279aab769fc3ec433cc8df61ce43' as const;
 
 export const INTENT_REGISTRY_ADDRESS =
@@ -176,7 +176,7 @@ export const clGaugeAbi = [
 // ── KinetiFiAccountFactory ABI ────────────────────────────────────────────────
 // getAddress(owner, salt) → deterministic smart account address (CREATE2)
 
-export const kinetiFiAccountFactoryAbi = [
+export const KinetiFiAccountFactoryAbi = [
   {
     type: 'function',
     name: 'getAddress',
@@ -202,7 +202,7 @@ export const kinetiFiAccountFactoryAbi = [
 
 
 // ── IntentRegistry ABI ────────────────────────────────────────────────────────
-// Source: Kinetifi-foundry/src/IntentRegistry.sol
+// Source: KinetiFi-foundry/src/IntentRegistry.sol
 
 export const intentRegistryAbi = [
   {
@@ -257,7 +257,7 @@ export const intentRegistryAbi = [
 ] as const;
 
 // ── KinetiFiSessionModule ABI ─────────────────────────────────────────────────
-// Source: Kinetifi-foundry/src/KinetiFiSessionModule.sol
+// Source: KinetiFi-foundry/src/KinetiFiSessionModule.sol
 
 export const sessionModuleAbi = [
   {
@@ -349,9 +349,9 @@ export const sessionModuleAbi = [
 ] as const;
 
 // ── KinetiFiAccount ABI ───────────────────────────────────────────────────────
-// Source: Kinetifi-foundry/src/KinetiFiAccount.sol (key functions only)
+// Source: KinetiFi-foundry/src/KinetiFiAccount.sol (key functions only)
 
-export const kinetiFiAccountAbi = [
+export const KinetiFiAccountAbi = [
   {
     type: 'function',
     name: 'execute',

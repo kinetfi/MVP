@@ -1,8 +1,0 @@
-{
-  "errors": [
-    {
-      "title": "Malformed parameter was sent",
-      "detail": "Position type should be one of: deposit, loan, locked, staked, reward, wallet, investment"
-    }
-  ]
-}

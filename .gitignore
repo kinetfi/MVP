@@ -37,7 +37,6 @@ cache/
 artifacts/
 broadcast/
 cache_forge/
-lib/
 
 # --- FRONTEND (React / Next.js) ---
 node_modules/
@@ -59,7 +58,6 @@ _research/
 
 # --- SYSTEM & EDITORS ---
 /_research/
-.vscode/*
 !.vscode/extensions.json
 .idea/
 .DS_Store

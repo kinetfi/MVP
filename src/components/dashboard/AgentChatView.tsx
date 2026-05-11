@@ -22,12 +22,44 @@ interface Message {
 const AgentChatView: React.FC = () => {
   const { eoaAddress, smartAccountAddress } = useWallet();
   const { data: agentData } = useAgentData();
-  const { environment, targetChain } = useEnvironment();
+  const { environment, targetChain, isMockMode } = useEnvironment();
   const positions = agentData?.positions || [];
   
   const [messages, setMessages] = useState<Message[]>(() => {
-    const saved = localStorage.getItem('kinetifi_chat_history');
-    return saved ? JSON.parse(saved) : [
+    const saved = localStorage.getItem('KinetiFi_chat_history');
+    if (saved && !isMockMode) return JSON.parse(saved);
+    
+    if (isMockMode) {
+      return [
+        {
+          role: 'assistant',
+          content: "Hello! I've analyzed your $10,000 portfolio on Base. You current have positions in Uniswap V3, Aerodrome, and Beefy Finance.",
+          timestamp: Date.now() - 3600000
+        },
+        {
+          role: 'user',
+          content: "Can you find better yields for these positions? I'm looking for a significant boost.",
+          timestamp: Date.now() - 3500000
+        },
+        {
+          role: 'assistant',
+          content: "Absolutely. I've identified 4 strategic upgrades:\n1. Re-ranging your WETH/USDC Uniswap position (+12% APY)\n2. Migrating AERO/USDC to the new High-Efficiency Gauge (+15% APY)\n3. Rotating Beefy USDC to the Auto-Compounding BIFI vault (+5% APY)\n4. Enabling Flash-Compounder for accrued rewards (+3% APY)\n\nTotal projected boost: +35% APY. Would you like me to prepare the optimization intents?",
+          timestamp: Date.now() - 3400000
+        },
+        {
+          role: 'user',
+          content: "Yes, that looks great. Let's do it.",
+          timestamp: Date.now() - 3300000
+        },
+        {
+          role: 'assistant',
+          content: "Excellent. I've highlighted the recommended upgrades in your Strategy Feed. You can review and authorize them individually, or I can batch them through your Smart Wallet.",
+          timestamp: Date.now() - 3200000
+        }
+      ];
+    }
+
+    return [
       {
         role: 'assistant',
         content: "Hello! I'm your KinetiFi AI Strategist. I have access to your portfolio data and can help you optimize your yields on Base. How can I assist you today?",
@@ -42,7 +74,7 @@ const AgentChatView: React.FC = () => {
 
   // Save to localStorage
   useEffect(() => {
-    localStorage.setItem('kinetifi_chat_history', JSON.stringify(messages));
+    localStorage.setItem('KinetiFi_chat_history', JSON.stringify(messages));
   }, [messages]);
 
   // Auto-scroll to bottom
@@ -126,7 +158,7 @@ const AgentChatView: React.FC = () => {
           timestamp: Date.now()
         }
       ]);
-      localStorage.removeItem('kinetifi_chat_history');
+      localStorage.removeItem('KinetiFi_chat_history');
     }
   };
 

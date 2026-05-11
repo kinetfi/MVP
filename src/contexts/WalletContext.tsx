@@ -18,9 +18,9 @@ import {
 } from 'wagmi';
 import { formatEther } from 'viem';
 import {
-  KINETIFI_ACCOUNT_ADDRESS,
-  KINETIFI_ACCOUNT_FACTORY_ADDRESS,
-  kinetiFiAccountFactoryAbi,
+  KinetiFi_ACCOUNT_ADDRESS,
+  KinetiFi_ACCOUNT_FACTORY_ADDRESS,
+  KinetiFiAccountFactoryAbi,
 } from '@/constants/contracts';
 import { useEnvironment } from '@/contexts/EnvironmentContext';
 
@@ -115,8 +115,8 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     isLoading: predicting,
     isError: predictError,
   } = useReadContract({
-    address: KINETIFI_ACCOUNT_FACTORY_ADDRESS,
-    abi: kinetiFiAccountFactoryAbi,
+    address: KinetiFi_ACCOUNT_FACTORY_ADDRESS,
+    abi: KinetiFiAccountFactoryAbi,
     functionName: 'getAddress',
     args: eoaAddress ? [eoaAddress, BigInt(0)] : undefined,
     chainId: targetChain.id,
@@ -134,7 +134,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // so balance / token reads work even if the factory RPC call fails.
   const smartAccountAddress: `0x${string}` | null =
     (predictedAddress as `0x${string}` | undefined) ??
-    (eoaAddress ? KINETIFI_ACCOUNT_ADDRESS : null);
+    (eoaAddress ? KinetiFi_ACCOUNT_ADDRESS : null);
 
   // ── 3. Deployment check — useBytecode ────────────────────────────────────────
 
